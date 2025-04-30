@@ -3,6 +3,7 @@
 
 #include <random>
 #include <omp.h>
+#include <cassert>
 
 
 

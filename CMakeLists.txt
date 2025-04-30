@@ -8,13 +8,8 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g \
 -O2 \
 -Wall -Wformat -Wformat=2 -Wconversion -Wimplicit-fallthrough \
 -Werror=format-security \
--U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 \
 -D_GLIBCXX_ASSERTIONS \
--fstack-clash-protection -fstack-protector-strong \
--Wl,-z,nodlopen -Wl,-z,noexecstack \
--Wl,-z,relro -Wl,-z,now \
--Wl,--as-needed -Wl,--no-copy-dt-needed-entries \
---coverage -fopenmp")
+-fopenmp ")
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra --coverage -D_GLIBCXX_ASSERTIONS")
 
