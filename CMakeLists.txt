@@ -35,7 +35,7 @@ add_executable(hello main.c
 enable_testing()
 
 
-add_executable(testbinary parallel_tests.cpp) 
+add_executable(testbinary parallel_tests.cpp parallel_utils.cpp parallel_utils.hpp) 
 target_link_libraries(
   testbinary
   GTest::gtest_main
