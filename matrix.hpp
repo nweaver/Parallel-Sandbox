@@ -5,6 +5,8 @@
 #include <omp.h>
 #include <cassert>
 
+#include "arm_neon.h"
+
 
 
 // Declaration before use
@@ -130,10 +132,31 @@ Matrix<T> parallel_multiply2(Matrix<T> &a, Matrix<T> &b){
         auto isize = i * size;
         for(size_t j = 0; j < size; ++j){
             T tmp = 0;
-            auto jsize = j * size;
             for(size_t k = 0; k < size; ++k){
                 tmp += dataa[isize + k] * datab[k * size + j];
-                // a(i,k) * b(k,j);
+            }
+            datad[isize + j] = tmp;
+        }
+    }
+    return dest;
+}
+
+
+template <class T>
+Matrix<T> parallel_multiply3(Matrix<T> &a, Matrix<T> &b){
+    assert(a._size == b._size);
+    Matrix<T> dest(a._size);
+    auto size = a._size;
+    auto dataa = a._data;
+    auto datab = b._data;
+    auto datad = dest._data;
+#pragma omp parallel for schedule(guided, 4)
+    for(size_t i = 0; i < size; ++i){
+        auto isize = i * size;
+        for(size_t j = 0; j < size; ++j){
+            T tmp = 0;
+            for(size_t k = 0; k < size; ++k){
+                tmp += dataa[isize + k] * datab[k * size + j];
             }
             datad[isize + j] = tmp;
         }

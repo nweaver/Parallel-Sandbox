@@ -5,6 +5,7 @@
 #include <chrono>
 #include "matrix.hpp"
 
+
 // Demonstrate some basic assertions.
 TEST(ParallelTest, HelloWorld)
 {
@@ -67,31 +68,37 @@ TEST(ParallelTest, ParallelSpeedup) {
     // Enough to nuke L1 but not L2/L3
     // But critically leaves both runs in basically the 
     // same position
-    CacheNukePrepare(64*1024);
-    for(size_t i = 0; i < 6; ++i) {
+    CacheNukePrepare(64*128*1024);
+    for(size_t i = 0; i < 7; ++i) {
         s = s << 1;
         std::cout << "Timing Matrix size " << s << "\n";
         Matrix<float> a(s, true);
         Matrix<float> b(s, true);
-        // parallelNuke();
+        parallelNuke();
         auto sequential = GetTiming([&]() {
             auto d = a * b;
             (void) d;
         });
-        // parallelNuke();
+        parallelNuke();
         auto parallel = GetTiming([&]() {
             auto d = parallel_multiply(a, b);
             (void) d;
         });
-
+        parallelNuke();
         auto parallel2 = GetTiming([&]() {
             auto d = parallel_multiply2(a, b);
+            (void) d;
+        });
+        parallelNuke();
+        auto parallel3 = GetTiming([&]() {
+            auto d = parallel_multiply3(a, b);
             (void) d;
         });
         std::cout << "Sequential timing: " << sequential << "\n";
         std::cout << "Parallel timing:   " << parallel << "\n";
         std::cout << "Parallel timing2:  " << parallel2 << "\n";
-
+        std::cout << "Parallel timing3:  " << parallel3 << "\n";
+        std::cout << "Speedup: " << (((float) sequential) / ((float) parallel2)) << "\n";
 
     }
 }
