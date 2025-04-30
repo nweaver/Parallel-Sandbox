@@ -29,7 +29,7 @@ public:
         if(random) {randomize();}
     }
 
-    Matrix(Matrix &m){
+    Matrix(const Matrix &m){
         _size = m._size;
         _data = new T[_size * _size];
         for(size_t i = 0; i < (_size * _size); ++i){
@@ -44,9 +44,9 @@ public:
         m._size = 0;
     }
 
-    Matrix<T> &operator=(Matrix &m){
+    Matrix<T> &operator=(const Matrix &m){
         if (&m == this) return *this;
-        if (_size > 0) delete _data;
+        if (_data) delete _data;
         _data = new T[_size * _size];
         for(size_t i = 0; i < (_size * _size); ++i){
             _data[i] = m._data[i];
@@ -62,11 +62,22 @@ public:
         return *this;
     }
 
+    bool operator==(const Matrix &b){
+        if(_size != b._size) return false;
+        for(size_t i = 0; i < (_size * _size); ++i){
+            auto diff = b._data[i] - _data[i];
+            if(diff > 0.000001 || diff < -0.00001) return false;
+
+        }
+        return true;
+    }
+
     ~Matrix(){
         if(_data) delete _data;
     }
 
     void randomize() {
+        //cppreference stolen from
         std::random_device rd;  // Will be used to obtain a seed for the random number engine
         std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
         std::uniform_real_distribution<> dis(1.0, 2.0);
@@ -76,13 +87,24 @@ public:
     
     }
 
+    // Matrix access.   (x, y) to get x, y
     T& operator() (size_t row, size_t column) noexcept {
         assert(row < _size);
         assert(column < _size);
         return (_data[row * _size + column]);
     }
 
-    Matrix<T> operator*(Matrix &b) {
+    Matrix<T> transpose() {
+        Matrix<T> ret(_size);
+        for(size_t i = 0; i < _size; ++i) {
+            for(size_t j = 0; j < _size; ++j){
+                ret(i,j) = (*this)(j, i);
+            }
+        }
+        return ret;
+    }
+
+    Matrix<T> operator*(Matrix &b) noexcept {
         assert(_size == b._size);
         Matrix<T> dest(_size);
         for(size_t i = 0; i < _size; ++i){
@@ -150,7 +172,7 @@ Matrix<T> parallel_multiply3(Matrix<T> &a, Matrix<T> &b){
     auto dataa = a._data;
     auto datab = b._data;
     auto datad = dest._data;
-#pragma omp parallel for schedule(guided, 4)
+#pragma omp parallel for schedule(guided, 1)
     for(size_t i = 0; i < size; ++i){
         auto isize = i * size;
         for(size_t j = 0; j < size; ++j){
@@ -163,6 +185,30 @@ Matrix<T> parallel_multiply3(Matrix<T> &a, Matrix<T> &b){
     }
     return dest;
 }
+
+template <class T>
+Matrix<T> parallel_multiply4(Matrix<T> &a, Matrix<T> &b){
+    assert(a._size == b._size);
+    Matrix<T> dest(a._size);
+    auto size = a._size;
+    auto dataa = a._data;
+    auto tmp = b.transpose();
+    auto datab = tmp._data;
+    auto datad = dest._data;
+#pragma omp parallel for schedule(guided, 1)
+    for(size_t i = 0; i < size; ++i){
+        auto isize = i * size;
+        for(size_t j = 0; j < size; ++j){
+            T tmp = 0;
+            for(size_t k = 0; k < size; ++k){
+                tmp += dataa[isize + k] * datab[j * size + k];
+            }
+            datad[isize + j] = tmp;
+        }
+    }
+    return dest;
+}
+
 
 
 #endif

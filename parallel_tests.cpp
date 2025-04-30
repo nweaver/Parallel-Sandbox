@@ -47,7 +47,9 @@ TEST(ParallelTest, SimpleMatrix){
     b(1,0) = 1;
     b(1,1) = 1;
     auto d = a * b;
-
+    EXPECT_TRUE(a != b);
+    EXPECT_TRUE(a == a);
+    EXPECT_FALSE(a == b);
     EXPECT_EQ(a(0,0), 1);
     EXPECT_EQ(a(0,1), 2);
     EXPECT_EQ(d(0,0), 3);
@@ -94,12 +96,20 @@ TEST(ParallelTest, ParallelSpeedup) {
             auto d = parallel_multiply3(a, b);
             (void) d;
         });
+        parallelNuke();
+        auto parallel4 = GetTiming([&]() {
+            auto d = parallel_multiply4(a, b);
+            (void) d;
+        });
         std::cout << "Sequential timing: " << sequential << "\n";
         std::cout << "Parallel timing:   " << parallel << "\n";
         std::cout << "Parallel timing2:  " << parallel2 << "\n";
         std::cout << "Parallel timing3:  " << parallel3 << "\n";
+        std::cout << "Parallel timing4:  " << parallel4 << "\n";
         std::cout << "Speedup: " << (((float) sequential) / ((float) parallel2)) << "\n";
-
+        auto c1 = a * b;
+        auto c2 = parallel_multiply4(a, b);
+        EXPECT_TRUE(c1 == c2);
     }
 }
 
